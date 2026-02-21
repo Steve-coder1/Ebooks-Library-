@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<section class="admin-layout" data-admin-dashboard>
+  <aside class="admin-sidebar" data-admin-sidebar>
+    <button type="button" class="hamburger admin-sidebar-toggle" data-admin-sidebar-toggle>☰ Menu</button>
+    <a href="#overview">Overview</a>
+    <a href="#ebooks-panel">Ebooks Management</a>
+    <a href="#codes-panel">Code Management</a>
+    <a href="#users-panel">User Management</a>
+    <a href="#reports-panel">Reports & Exports</a>
+    <a href="#audit-panel">Audit Logs</a>
+    <a href="#maintenance-panel">Maintenance</a>
+  </aside>
+
+  <div class="admin-main">
+    <section id="overview" class="panel admin-panel">
+      <h1>Admin Control Center</h1>
+      <div class="admin-stats-grid">
+        <article class="admin-stat-card"><h4>Total Ebooks</h4><p>{{ overview.total_ebooks }}</p></article>
+        <article class="admin-stat-card"><h4>Active Codes</h4><p>{{ overview.total_active_codes }}</p></article>
+        <article class="admin-stat-card"><h4>Used Codes</h4><p>{{ overview.used_codes }}</p></article>
+        <article class="admin-stat-card"><h4>Total Downloads</h4><p>{{ overview.downloads.all_time }}</p></article>
+      </div>
+      <p>Most downloaded ebook: <strong>{{ overview.most_downloaded_ebook|default:'N/A' }}</strong></p>
+    </section>
+
+    <section class="admin-chart-grid">
+      <article class="panel admin-panel">
+        <h3>Downloads Over Time (line)</h3>
+        <div class="chart-bars" data-chart-bars>
+          {% for day, count in downloads_over_time %}
+          <div class="chart-row"><span>{{ day }}</span><div class="chart-bar" data-value="{{ count }}"></div><em>{{ count }}</em></div>
+          {% empty %}<p>No download activity in last week.</p>{% endfor %}
+        </div>
+      </article>
+      <article class="panel admin-panel">
+        <h3>Top Ebooks (bar)</h3>
+        <div class="chart-bars" data-chart-bars>
+          {% for item in top_ebooks %}
+          <div class="chart-row"><span>{{ item.title }}</span><div class="chart-bar" data-value="{{ item.download_count }}"></div><em>{{ item.download_count }}</em></div>
+          {% empty %}<p>No ebooks available.</p>{% endfor %}
+        </div>
+      </article>
+      <article class="panel admin-panel">
+        <h3>Code Status (pie summary)</h3>
+        <div class="pie-summary">
+          <p>🟢 Active: {{ code_status.active }}</p>
+          <p>🔵 Used: {{ code_status.used }}</p>
+          <p>🟠 Expired: {{ code_status.expired }}</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="ebooks-panel" class="panel admin-panel">
+      <h3>Ebooks Management</h3>
+      <p>Create/edit/delete ebooks, upload bundles, manage versions and categories.</p>
+      <div class="inline-actions">
+        <a class="inline-action" href="/admin/library/ebook/">Open Ebook Admin</a>
+      </div>
+    </section>
+
+    <section id="codes-panel" class="panel admin-panel">
+      <h3>Code Management</h3>
+      <p>Generate, deactivate and inspect code usage logs.</p>
+      <div class="inline-actions">
+        <a class="inline-action" href="/admin/library/accesscode/">Open Code Admin</a>
+      </div>
+    </section>
+
+    <section id="users-panel" class="panel admin-panel">
+      <h3>User Management</h3>
+      <p>View users, download history, and reviews.</p>
+      <div class="inline-actions">
+        <a class="inline-action" href="/admin/accounts/user/">Open User Admin</a>
+        <a class="inline-action" href="/ebooks/admin/history/">Download History API</a>
+      </div>
+    </section>
+
+    <section id="reports-panel" class="panel admin-panel">
+      <h3>Reports & Exports</h3>
+      <form method="post" action="/ebooks/admin/backups/trigger/">{% csrf_token %}
+        <input type="text" name="backup_type" value="full" aria-label="Backup type">
+        <button type="submit">Trigger Backup</button>
+      </form>
+      <div class="inline-actions">
+        <a class="inline-action" href="/ebooks/admin/exports/?kind=downloads">Export Downloads CSV</a>
+        <a class="inline-action" href="/ebooks/admin/exports/?kind=code_usage">Export Code Usage CSV</a>
+        <a class="inline-action" href="/ebooks/admin/exports/?kind=user_activity">Export User Activity CSV</a>
+      </div>
+    </section>
+
+    <section id="audit-panel" class="panel admin-panel">
+      <h3>Recent Activity Feed</h3>
+      <input type="search" class="admin-filter" placeholder="Filter activity..." data-admin-activity-filter>
+      <div class="activity-feed" data-admin-activity-list>
+        {% for item in recent_activity %}
+        <article class="activity-row" data-activity-row>
+          <strong>{{ item.event_type }}</strong>
+          <span>{{ item.severity }}</span>
+          <time>{{ item.created_at }}</time>
+        </article>
+        {% empty %}
+        <p>No recent activity logged.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section id="maintenance-panel" class="panel admin-panel">
+      <h3>Maintenance Controls</h3>
+      <form method="post" action="/ebooks/admin/maintenance/">{% csrf_token %}
+        <label><input type="checkbox" name="maintenance_mode" value="true" {% if maintenance.maintenance_mode %}checked{% endif %}> Maintenance mode</label>
+        <label><input type="checkbox" name="disable_downloads" value="true" {% if maintenance.disable_downloads %}checked{% endif %}> Disable downloads</label>
+        <label><input type="checkbox" name="disable_code_entry" value="true" {% if maintenance.disable_code_entry %}checked{% endif %}> Disable code entry</label>
+        <input type="text" name="notification_message" value="{{ maintenance.notification_message|default:'' }}" placeholder="Maintenance message">
+        <button type="submit">Save maintenance settings</button>
+      </form>
+    </section>
+  </div>
+</section>
+
+<script type="application/json" id="adminChartsPayload">{{ charts_json|safe }}</script>
+{% endblock %}

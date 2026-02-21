@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+<section class="profile-header panel">
+  <div>
+    <h1>My Dashboard</h1>
+    <p>{{ user_obj.email }}</p>
+    <p>Role: {{ user_obj.role }}</p>
+  </div>
+</section>
+
+<section class="profile-tabs" data-profile-tabs>
+  <button type="button" class="tab-btn{% if active_tab == 'history' %} active{% endif %}" data-tab-target="history">Download History</button>
+  <button type="button" class="tab-btn{% if active_tab == 'favorites' %} active{% endif %}" data-tab-target="favorites">Favorites</button>
+  <button type="button" class="tab-btn{% if active_tab == 'reviews' %} active{% endif %}" data-tab-target="reviews">Reviews Posted</button>
+  <button type="button" class="tab-btn{% if active_tab == 'account' %} active{% endif %}" data-tab-target="account">Account Settings</button>
+</section>
+
+<section class="profile-sections">
+  <details class="panel profile-section{% if active_tab == 'history' %} active{% endif %}" data-tab-panel="history" open>
+    <summary>Download History</summary>
+    <div class="profile-cards">
+      {% for item in history_page %}
+      <article class="profile-card">
+        <h4><a href="/ebooks/{{ item.ebook.slug }}/">{{ item.ebook.title }}</a></h4>
+        <p>Version: {{ item.version_label|default:'N/A' }}</p>
+        <p>Downloaded: {{ item.downloaded_at }}</p>
+      </article>
+      {% empty %}
+      <p>No downloads yet.</p>
+      {% endfor %}
+    </div>
+    <div class="pagination">
+      {% if history_page.has_previous %}<a href="?tab=history&history_page={{ history_page.previous_page_number }}&favorites_page={{ favorites_page.number }}&reviews_page={{ reviews_page.number }}">Prev</a>{% endif %}
+      <span class="current">{{ history_page.number }} / {{ history_page.paginator.num_pages }}</span>
+      {% if history_page.has_next %}<a href="?tab=history&history_page={{ history_page.next_page_number }}&favorites_page={{ favorites_page.number }}&reviews_page={{ reviews_page.number }}">Next</a>{% endif %}
+    </div>
+  </details>
+
+  <details class="panel profile-section{% if active_tab == 'favorites' %} active{% endif %}" data-tab-panel="favorites" open>
+    <summary>Favorites</summary>
+    <div class="profile-cards">
+      {% for item in favorites_page %}
+      <article class="profile-card" data-favorite-card="{{ item.ebook_id }}">
+        <h4><a href="/ebooks/{{ item.ebook.slug }}/">{{ item.ebook.title }}</a></h4>
+        <p>Rating: ⭐ {{ item.ebook.average_rating }}</p>
+        <p>Saved: {{ item.created_at }}</p>
+        <button type="button" class="inline-action" data-remove-favorite="{{ item.ebook_id }}">Remove</button>
+      </article>
+      {% empty %}
+      <p>No favorites yet.</p>
+      {% endfor %}
+    </div>
+    <div class="pagination">
+      {% if favorites_page.has_previous %}<a href="?tab=favorites&favorites_page={{ favorites_page.previous_page_number }}&history_page={{ history_page.number }}&reviews_page={{ reviews_page.number }}">Prev</a>{% endif %}
+      <span class="current">{{ favorites_page.number }} / {{ favorites_page.paginator.num_pages }}</span>
+      {% if favorites_page.has_next %}<a href="?tab=favorites&favorites_page={{ favorites_page.next_page_number }}&history_page={{ history_page.number }}&reviews_page={{ reviews_page.number }}">Next</a>{% endif %}
+    </div>
+  </details>
+
+  <details class="panel profile-section{% if active_tab == 'reviews' %} active{% endif %}" data-tab-panel="reviews" open>
+    <summary>Reviews Posted</summary>
+    <div class="profile-cards">
+      {% for item in reviews_page %}
+      <article class="profile-card" data-review-card="{{ item.id }}">
+        <h4><a href="/ebooks/{{ item.ebook.slug }}/">{{ item.ebook.title }}</a></h4>
+        <p>⭐ {{ item.rating }}</p>
+        <p>{{ item.review_text|default:'No text provided.' }}</p>
+        <p>Updated: {{ item.updated_at }}</p>
+        <div class="inline-actions">
+          <a class="inline-action" href="/ebooks/{{ item.ebook.slug }}/#reviews">Edit</a>
+          <button type="button" class="inline-action" data-delete-review="{{ item.id }}">Delete</button>
+        </div>
+      </article>
+      {% empty %}
+      <p>No reviews yet.</p>
+      {% endfor %}
+    </div>
+    <div class="pagination">
+      {% if reviews_page.has_previous %}<a href="?tab=reviews&reviews_page={{ reviews_page.previous_page_number }}&history_page={{ history_page.number }}&favorites_page={{ favorites_page.number }}">Prev</a>{% endif %}
+      <span class="current">{{ reviews_page.number }} / {{ reviews_page.paginator.num_pages }}</span>
+      {% if reviews_page.has_next %}<a href="?tab=reviews&reviews_page={{ reviews_page.next_page_number }}&history_page={{ history_page.number }}&favorites_page={{ favorites_page.number }}">Next</a>{% endif %}
+    </div>
+  </details>
+
+  <details class="panel profile-section{% if active_tab == 'account' %} active{% endif %}" data-tab-panel="account" open>
+    <summary>Account Settings</summary>
+    <form method="post" class="profile-settings-form">{% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Update Profile</button>
+    </form>
+  </details>
+</section>
+{% endblock %}
