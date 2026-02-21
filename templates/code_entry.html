@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Redeem Access Code{% endblock %}
+{% block content %}
+<section class="panel code-entry-page">
+  <h1>Redeem Your Access Code</h1>
+  <p>Enter a valid code to unlock temporary, secure download links for your ebook files.</p>
+
+  <form id="codeValidateForm" class="code-entry-form">{% csrf_token %}
+    <input type="text" name="code" value="{{ prefill_code }}" placeholder="Enter download code" required>
+    <input type="text" name="captcha_answer" placeholder="Captcha answer (if prompted)" data-captcha-input hidden>
+    <button type="submit" data-code-submit>Validate code</button>
+  </form>
+
+  <div class="progress-wrap" hidden><div class="progress-bar" data-progress></div></div>
+  <div class="code-feedback" data-code-feedback></div>
+  <p class="captcha-prompt" data-captcha-prompt hidden></p>
+  <div class="download-links file-scroll" data-download-links></div>
+
+  <div class="code-entry-actions">
+    <a class="inline-action" href="/">Back to homepage</a>
+    <a class="inline-action" href="/ebooks/list/">Browse catalog</a>
+  </div>
+</section>
+{% endblock %}
