@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}{{ ebook.meta_title|default:ebook.title }}{% endblock %}
+{% block content %}
+<section class="detail-hero">
+  <div class="detail-cover">{{ ebook.title|slice:":1" }}</div>
+  <div class="detail-meta">
+    <h1>{{ ebook.title }}</h1>
+    <p>{{ ebook.author }} • {{ ebook.category.name }}</p>
+    <p>⭐ {{ ebook.average_rating }} ({{ ebook.review_count }} reviews)</p>
+    <p>{{ ebook.summary_text|default:ebook.description }}</p>
+    <button type="button" class="fav-btn{% if is_favorited %} active{% endif %}" data-fav-btn data-ebook-id="{{ ebook.id }}">{% if is_favorited %}♥ Favorited{% else %}♡ Add to Favorites{% endif %}</button>
+  </div>
+</section>
+
+<section class="detail-grid">
+  <details open class="panel">
+    <summary>Preview</summary>
+    <div class="preview-area">
+      <p>{{ ebook.description|default:'No description available.' }}</p>
+      {% if ebook.sample_preview_path %}
+      <a href="{{ ebook.sample_preview_path }}" target="_blank" rel="noopener">Open sample preview</a>
+      {% endif %}
+    </div>
+  </details>
+
+  <details open class="panel">
+    <summary>Files & Versions</summary>
+    <div class="file-list">
+      {% for f in ebook_files %}
+      <article class="file-item">
+        <strong>{{ f.file_name }}</strong>
+        <span>{{ f.version_label }} • {{ f.file_size }} bytes</span>
+      </article>
+      {% empty %}
+      <p>No files available.</p>
+      {% endfor %}
+    </div>
+  </details>
+</section>
+
+<section class="panel code-unlock" id="code-unlock">
+  <h3>Unlock Download</h3>
+  <p>Validate your code to reveal temporary secure download links.</p>
+  <form id="codeValidateForm">{% csrf_token %}
+    <input type="text" name="code" placeholder="Enter download code" required>
+    <button type="submit">Validate code</button>
+  </form>
+  <div class="progress-wrap" hidden><div class="progress-bar" data-progress></div></div>
+  <div class="code-feedback" data-code-feedback></div>
+  <div class="download-links" data-download-links></div>
+</section>
+
+<section class="panel reviews-panel" id="reviews">
+  <h3>Reviews</h3>
+  <div class="reviews-list" data-reviews-list>
+    {% for r in reviews %}
+    <article class="review-row{% if forloop.counter > 5 %} hidden-review{% endif %}">
+      <header>
+        <strong title="{{ r.user.email }}">{{ r.user.email }}</strong>
+        <span>⭐ {{ r.rating }}</span>
+      </header>
+      <p>{{ r.review_text|default:'No text provided.' }}</p>
+    </article>
+    {% empty %}
+    <p>No reviews yet.</p>
+    {% endfor %}
+  </div>
+  {% if reviews|length > 5 %}
+  <button type="button" class="load-more" data-load-more-reviews>Load more reviews</button>
+  {% endif %}
+
+  <hr>
+  <h4>Leave a review</h4>
+  <form method="post" action="/ebooks/{{ ebook.id }}/reviews/upsert/">{% csrf_token %}
+    <label>Rating
+      <select name="rating" required>
+        <option value="5" {% if user_review and user_review.rating == 5 %}selected{% endif %}>5</option>
+        <option value="4" {% if user_review and user_review.rating == 4 %}selected{% endif %}>4</option>
+        <option value="3" {% if user_review and user_review.rating == 3 %}selected{% endif %}>3</option>
+        <option value="2" {% if user_review and user_review.rating == 2 %}selected{% endif %}>2</option>
+        <option value="1" {% if user_review and user_review.rating == 1 %}selected{% endif %}>1</option>
+      </select>
+    </label>
+    <textarea name="review_text" rows="4" placeholder="Share your thoughts...">{% if user_review %}{{ user_review.review_text }}{% endif %}</textarea>
+    <button type="submit">Save Review</button>
+  </form>
+</section>
+
+<script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}

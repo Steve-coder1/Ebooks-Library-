@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Ebook Catalog{% endblock %}
+{% block content %}
+<section class="catalog-header">
+  <h1>Ebook Catalog</h1>
+  <form method="get" class="catalog-search">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search title, author, description...">
+    <button type="submit">Search</button>
+  </form>
+</section>
+
+<section class="catalog-controls">
+  <details class="filter-group" open>
+    <summary>Filters</summary>
+    <form method="get" class="filters-form">
+      <input type="hidden" name="q" value="{{ q }}">
+      <label>Category
+        <select name="category">
+          <option value="">All</option>
+          {% for c in categories %}
+          <option value="{{ c.slug }}" {% if selected_category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Author
+        <select name="author">
+          <option value="">All</option>
+          {% for a in authors %}
+          <option value="{{ a }}" {% if selected_author == a %}selected{% endif %}>{{ a }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Rating
+        <select name="min_rating">
+          <option value="">Any</option>
+          <option value="4" {% if selected_min_rating == '4' %}selected{% endif %}>4★ and up</option>
+          <option value="3" {% if selected_min_rating == '3' %}selected{% endif %}>3★ and up</option>
+        </select>
+      </label>
+      <label><input type="checkbox" name="featured" value="true" {% if selected_featured in 'true yes 1' %}checked{% endif %}> Featured only</label>
+      <label>Sort
+        <select name="sort">
+          <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="most_downloaded" {% if selected_sort == 'most_downloaded' %}selected{% endif %}>Most downloaded</option>
+          <option value="highest_rated" {% if selected_sort == 'highest_rated' %}selected{% endif %}>Highest rated</option>
+          <option value="alphabetical" {% if selected_sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
+        </select>
+      </label>
+      <button type="submit">Apply</button>
+    </form>
+  </details>
+
+  <div class="view-switch" data-view-switch>
+    <button type="button" data-view="grid" class="active">Grid</button>
+    <button type="button" data-view="list">List</button>
+  </div>
+</section>
+
+<section class="catalog-results grid-view" data-catalog-results>
+  {% for ebook in page_obj.object_list %}
+  <a class="catalog-card" href="/ebooks/{{ ebook.slug }}/">
+    <div class="catalog-cover">{{ ebook.title|slice:":1" }}</div>
+    <div class="catalog-info">
+      <h3>{{ ebook.title }}</h3>
+      <p>{{ ebook.author }}</p>
+      <p>⭐ {{ ebook.average_rating }}</p>
+      {% if ebook.is_featured %}<span class="badge">Featured</span>{% endif %}
+    </div>
+    <div class="catalog-hover">{{ ebook.summary_text|default:ebook.description|truncatechars:110 }}</div>
+  </a>
+  {% empty %}
+  <p>No ebooks found for the selected filters.</p>
+  {% endfor %}
+</section>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}<a href="?q={{ q }}&category={{ selected_category }}&author={{ selected_author }}&min_rating={{ selected_min_rating }}&sort={{ selected_sort }}&featured={{ selected_featured }}&page={{ page_obj.previous_page_number }}">Prev</a>{% endif %}
+  {% for n in paginator.page_range %}
+    {% if n == page_obj.number %}
+      <span class="current">{{ n }}</span>
+    {% else %}
+      <a href="?q={{ q }}&category={{ selected_category }}&author={{ selected_author }}&min_rating={{ selected_min_rating }}&sort={{ selected_sort }}&featured={{ selected_featured }}&page={{ n }}">{{ n }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}<a href="?q={{ q }}&category={{ selected_category }}&author={{ selected_author }}&min_rating={{ selected_min_rating }}&sort={{ selected_sort }}&featured={{ selected_featured }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

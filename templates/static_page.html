@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+<section class="panel static-page">
+  <h1>{{ page.heading }}</h1>
+  <p>{{ page.body }}</p>
+</section>
+<script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}
