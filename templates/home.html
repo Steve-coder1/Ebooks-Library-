@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Ebooks Library - Home{% endblock %}
+{% block content %}
+<section class="hero" id="hero">
+  <div class="hero-track" data-hero-track>
+    {% for promo in promo_banners %}
+    <article class="hero-slide{% if forloop.first %} active{% endif %} promo-slide" data-hero-slide>
+      <h2>{{ promo.title }}</h2>
+      <p>{{ promo.message }}</p>
+      <a href="{{ promo.link }}">{{ promo.link_label }}</a>
+    </article>
+    {% endfor %}
+
+    {% for ebook in top_downloads %}
+    <article class="hero-slide{% if not promo_banners and forloop.first %} active{% endif %}" data-hero-slide>
+      <h2>{{ ebook.title }}</h2>
+      <p>{{ ebook.author }} • {{ ebook.category.name }}</p>
+      <p>{{ ebook.summary_text|default:ebook.description|truncatechars:140 }}</p>
+      <a href="/ebooks/{{ ebook.slug }}/">View ebook</a>
+    </article>
+    {% empty %}
+    {% if not promo_banners %}
+    <article class="hero-slide active" data-hero-slide>
+      <h2>Welcome to Ebooks Library</h2>
+      <p>Discover featured collections, top downloads, and fresh reviews.</p>
+      <a href="/ebooks/list/">Browse catalog</a>
+    </article>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <div class="hero-dots" data-hero-dots></div>
+</section>
+
+<section id="featured" class="homepage-section">
+  <h3>Featured Ebooks</h3>
+  <div class="featured-grid">
+    {% for ebook in featured_ebooks %}
+    <a class="book-card" href="/ebooks/{{ ebook.slug }}/">
+      <div class="book-card-cover">{{ ebook.title|slice:":1" }}</div>
+      <div class="book-card-meta">
+        <strong>{{ ebook.title }}</strong>
+        <span>{{ ebook.author }}</span>
+      </div>
+      <div class="book-card-hover">
+        <span>⭐ {{ ebook.average_rating }}</span>
+        <span>Quick preview</span>
+      </div>
+    </a>
+    {% empty %}
+    <p>No featured ebooks yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="categories" class="homepage-section">
+  <h3>Categories</h3>
+  <div class="category-cards">
+    {% for category in homepage_categories %}
+    <details class="category-card">
+      <summary>{{ category.name }}</summary>
+      <a href="/ebooks/list/?category={{ category.slug }}">Explore {{ category.name }}</a>
+    </details>
+    {% empty %}
+    <p>No categories yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="latest-reviews" class="homepage-section">
+  <h3>Latest Reviews</h3>
+  <div class="review-list">
+    {% for review in latest_reviews %}
+    <article class="review-item">
+      <strong>{{ review.user.email }}</strong>
+      <span>⭐ {{ review.rating }}</span>
+      <p>{{ review.review_text|default:'Great read.'|truncatechars:120 }}</p>
+      <a href="/ebooks/{{ review.ebook.slug }}/">Read full review context</a>
+    </article>
+    {% empty %}
+    <p>No reviews yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="code-cta" class="homepage-section code-cta">
+  <h3>Have a download code?</h3>
+  <p>Enter your code below to unlock secure access to your ebook files.</p>
+  <form method="get" action="/ebooks/code-entry/" class="code-cta-form">
+    <input name="code" type="text" placeholder="Paste code here">
+    <button type="submit">Continue</button>
+  </form>
+</section>
+{% endblock %}
