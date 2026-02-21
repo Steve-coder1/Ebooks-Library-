@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -6,10 +5,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'replace-me-in-production'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
-
-
-def env_bool(name, default=False):
-    return os.getenv(name, str(int(default))).strip().lower() in ('1', 'true', 'yes', 'on')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -77,15 +72,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
-# HTTPS enforcement is opt-in in this starter project to avoid local runserver redirect loops.
-# Set DJANGO_FORCE_HTTPS=1 in production/staging or behind a TLS-terminating proxy.
-# In DEBUG, forcing HTTPS requires explicit DJANGO_FORCE_HTTPS_IN_DEBUG=1 as an extra safety guard.
-FORCE_HTTPS = env_bool('DJANGO_FORCE_HTTPS', default=False)
-if DEBUG and not env_bool('DJANGO_FORCE_HTTPS_IN_DEBUG', default=False):
-    FORCE_HTTPS = False
-SESSION_COOKIE_SECURE = FORCE_HTTPS
-CSRF_COOKIE_SECURE = FORCE_HTTPS
-SECURE_SSL_REDIRECT = FORCE_HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
 
 TOKEN_SESSION_IDLE_TIMEOUT_SECONDS = 1800
 PASSWORD_RESET_TOKEN_TTL_SECONDS = 3600
@@ -109,9 +98,9 @@ REVIEW_RATE_LIMIT_WINDOW_SECONDS = 300
 
 CATEGORY_CACHE_TTL_SECONDS = 600
 
-SECURE_HSTS_SECONDS = 31536000 if FORCE_HTTPS else 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = FORCE_HTTPS
-SECURE_HSTS_PRELOAD = FORCE_HTTPS
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_HTTPONLY = True
 
